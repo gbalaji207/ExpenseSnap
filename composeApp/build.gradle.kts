@@ -36,10 +36,11 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
 
-            implementation(libs.ktor.client.okhttp)
-
             // Koin for Android
             implementation(libs.koin.android)
+
+            // Ktor Client for Android
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -51,19 +52,23 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
+            // Koin for Dependency Injection
+            api(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+
+            // Ktor Client Core
+            implementation(libs.bundles.ktor)
+
             // Room
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
-
-            // Koin for Dependency Injection
-            implementation(libs.koin.core)
-            implementation(libs.koin.compose)
-            implementation(libs.koin.compose.viewmodel)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
         nativeMain.dependencies {
+            // Ktor Client for iOS
             implementation(libs.ktor.client.darwin)
         }
     }
