@@ -1,49 +1,38 @@
 package com.expensesnap.app
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import org.jetbrains.compose.resources.painterResource
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.expensesnap.app.navigation.BottomNavBar
+import com.expensesnap.app.navigation.NavGraph
+import com.expensesnap.app.navigation.shouldShowBottomBar
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import expensesnap.composeapp.generated.resources.Res
-import expensesnap.composeapp.generated.resources.compose_multiplatform
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
+        val navController = rememberNavController()
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+
+        Scaffold(
+            bottomBar = {
+                // Show bottom navigation only for main tab screens
+                if (shouldShowBottomBar(currentDestination)) {
+                    BottomNavBar(
+                        navController = navController,
+                        currentDestination = currentDestination
+                    )
                 }
             }
+        ) { paddingValues ->
+            // paddingValues are not used here because each screen has its own Scaffold
+            // that handles its own padding. This outer Scaffold only manages the bottom bar.
+            NavGraph(navController = navController)
         }
     }
 }
