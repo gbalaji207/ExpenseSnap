@@ -9,13 +9,13 @@ sealed class Screen {
     data object Home : Screen()
 
     @Serializable
-    data object Scan : Screen()
-
-    @Serializable
     data object Export : Screen()
 
     @Serializable
     data object Settings : Screen()
+
+    @Serializable
+    data object Scan : Screen()
 
     @Serializable
     data class Detail(val receiptId: String) : Screen()
@@ -31,9 +31,12 @@ sealed class Screen {
 fun shouldShowBottomBar(destination: NavDestination?): Boolean {
     return destination?.route in listOf(
         Screen.Home::class.qualifiedName,
-        Screen.Scan::class.qualifiedName,
         Screen.Export::class.qualifiedName,
         Screen.Settings::class.qualifiedName
     )
+}
+
+fun shouldShowFAB(destination: NavDestination?): Boolean {
+    return destination?.route == Screen.Home::class.qualifiedName
 }
 

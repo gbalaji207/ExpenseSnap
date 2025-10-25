@@ -1,7 +1,6 @@
 package com.expensesnap.app.navigation
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -22,7 +21,6 @@ data class BottomNavItem(
 
 val bottomNavItems = listOf(
     BottomNavItem(Screen.Home, Icons.Default.Home, "Home"),
-    BottomNavItem(Screen.Scan, Icons.Default.CameraAlt, "Scan"),
     BottomNavItem(Screen.Export, Icons.Default.FileDownload, "Export"),
     BottomNavItem(Screen.Settings, Icons.Default.Settings, "Settings")
 )
@@ -36,7 +34,6 @@ fun BottomNavBar(
         bottomNavItems.forEach { item ->
             val isSelected = when (currentDestination?.route) {
                 Screen.Home::class.qualifiedName -> item.screen is Screen.Home
-                Screen.Scan::class.qualifiedName -> item.screen is Screen.Scan
                 Screen.Export::class.qualifiedName -> item.screen is Screen.Export
                 Screen.Settings::class.qualifiedName -> item.screen is Screen.Settings
                 else -> false

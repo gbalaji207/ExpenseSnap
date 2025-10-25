@@ -25,7 +25,7 @@ fun HomeScreen(navController: NavController) {
             TopAppBar(
                 title = { Text("Receipt Scanner") }
             )
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier = Modifier
