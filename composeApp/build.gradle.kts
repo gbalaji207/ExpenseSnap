@@ -71,6 +71,8 @@ kotlin {
             // Room
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
+
+            implementation("io.github.kashif-mehmood-km:camerak:0.0.12")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

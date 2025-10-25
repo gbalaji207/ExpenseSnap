@@ -14,6 +14,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.expensesnap.app.navigation.BottomNavBar
 import com.expensesnap.app.navigation.NavGraph
+import com.expensesnap.app.navigation.Screen
 import com.expensesnap.app.navigation.shouldShowBottomBar
 import com.expensesnap.app.navigation.shouldShowFAB
 import com.expensesnap.app.theme.Dimensions
@@ -42,7 +43,9 @@ fun App() {
                 // Show FAB only on Home screen
                 if (shouldShowFAB(currentDestination)) {
                     FloatingActionButton(
-                        onClick = {},
+                        onClick = {
+                            navController.navigate(Screen.Scan)
+                        },
                         containerColor = MaterialTheme.colorScheme.primary
                     ) {
                         Icon(

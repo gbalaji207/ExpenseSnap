@@ -16,8 +16,7 @@ import com.expensesnap.app.ui.settings.SettingsScreen
 @Composable
 fun NavGraph(navController: NavHostController) {
     NavHost(
-        navController = navController,
-        startDestination = Screen.Home
+        navController = navController, startDestination = Screen.Home
     ) {
         // Main tab screens with bottom navigation
         composable<Screen.Home> {
@@ -25,7 +24,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable<Screen.Scan> {
-            ScanScreen(navController = navController)
+            ScanScreen(navController = navController, onClose = { navController.navigateUp() })
         }
 
         composable<Screen.Export> {
@@ -40,16 +39,14 @@ fun NavGraph(navController: NavHostController) {
         composable<Screen.Detail> { backStackEntry ->
             val detail: Screen.Detail = backStackEntry.toRoute()
             ReceiptDetailScreen(
-                navController = navController,
-                receiptId = detail.receiptId
+                navController = navController, receiptId = detail.receiptId
             )
         }
 
         composable<Screen.Edit> { backStackEntry ->
             val edit: Screen.Edit = backStackEntry.toRoute()
             EditReceiptScreen(
-                navController = navController,
-                receiptId = edit.receiptId
+                navController = navController, receiptId = edit.receiptId
             )
         }
 
