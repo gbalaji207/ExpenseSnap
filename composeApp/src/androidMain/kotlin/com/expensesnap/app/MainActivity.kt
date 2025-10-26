@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.expensesnap.app.di.appModule
+import com.expensesnap.app.di.platformModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
@@ -17,8 +18,9 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Koin
         startKoin {
-            androidContext(this@MainActivity)
+            androidContext(this@MainActivity.application)
             modules(appModule)
+            modules(platformModule)
         }
 
         setContent {

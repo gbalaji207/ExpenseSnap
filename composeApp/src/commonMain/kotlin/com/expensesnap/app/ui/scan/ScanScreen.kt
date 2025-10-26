@@ -1,6 +1,8 @@
 package com.expensesnap.app.ui.scan
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -16,22 +18,30 @@ import androidx.compose.material.icons.filled.FlashAuto
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.Photo
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.decodeToImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kashif.cameraK.controller.CameraController
 import com.kashif.cameraK.enums.CameraLens
 import com.kashif.cameraK.enums.Directory
@@ -39,12 +49,107 @@ import com.kashif.cameraK.enums.FlashMode
 import com.kashif.cameraK.enums.ImageFormat
 import com.kashif.cameraK.result.ImageCaptureResult
 import com.kashif.cameraK.ui.CameraPreview
+import dev.icerock.moko.permissions.compose.BindEffect
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen(navController: NavController, onClose: () -> Unit) {
+fun ScanScreen(onClose: () -> Unit) {
+    val viewModel = koinViewModel<ScanViewModel>()
+    val screenState by viewModel.scanScreenState.collectAsStateWithLifecycle()
+    val showPermissionRationaleDialog by viewModel.showPermissionRationaleDialog.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.checkCameraPermission()
+        onPauseOrDispose { }
+    }
+
+    BindEffect(viewModel.permissionsController)
+
+    when (screenState) {
+        is ScanScreenState.Loading -> {
+            // show black screen mimicking camera preview
+            Box(
+                modifier = Modifier.fillMaxSize()
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {}
+        }
+
+        is ScanScreenState.CheckingPermission -> {
+            CameraPermissionDialog(
+                onAllowClick = viewModel::requestCameraPermission,
+                onDismiss = viewModel::cameraPermissionDialogDismissed,
+            )
+        }
+
+        is ScanScreenState.AlternateUploadScreen -> {
+            AlternativeUploadScreen(
+                onGalleryClick = {
+                    // TODO: Open gallery picker
+                }, onBackClick = onClose, onRetryCamera = viewModel::requestCameraPermission
+            )
+        }
+
+        is ScanScreenState.CameraPreview -> {
+            CameraPreview(
+                coroutineScope, onPictureTaken = { imageBytes ->
+                    viewModel.onPhotoCaptured(imageBytes)
+                }, onClose = onClose
+            )
+        }
+
+        is ScanScreenState.CapturedImagePreview -> {
+            val bytes = viewModel.photoBytes
+            if (bytes != null) {
+                CapturedImagePreview(
+                    bytes = bytes,
+                    onUsePhoto = viewModel::processCapturedPhoto,
+                    onRetake = viewModel::retakePhoto
+                )
+            } else {
+                onClose()
+            }
+        }
+
+        is ScanScreenState.ProcessingImagePreview -> {
+            Box(
+                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Processing photo...", style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+
+        is ScanScreenState.ImageProcessed -> {
+            Box(
+                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Processed Successfully", style = MaterialTheme.typography.bodyLarge)
+            }
+        }
+
+        ScanScreenState.Close -> {
+            onClose()
+        }
+    }
+
+    if (showPermissionRationaleDialog) {
+        SettingsDialog(
+            onOpenSettings = viewModel::openAppSettings,
+            onDismiss = viewModel::dismissPermissionRationaleDialog
+        )
+    }
+}
+
+@Composable
+private fun CameraPreview(
+    coroutineScope: CoroutineScope, onPictureTaken: (ByteArray) -> Unit, onClose: () -> Unit
+) {
     val cameraController = remember { mutableStateOf<CameraController?>(null) }
     val flashMode = remember { mutableStateOf(FlashMode.AUTO) }
 
@@ -73,26 +178,23 @@ fun ScanScreen(navController: NavController, onClose: () -> Unit) {
         ) {
             // Gallery button (left)
             GalleryButton(onClick = {
-                println("D001 Gallery button clicked")
+                // TODO: Open gallery picker
             })
 
             // Capture button (center)
             CaptureButton(
                 onClick = {
-                    println("D001 Capture button clicked")
                     coroutineScope.launch {
                         val result = cameraController.value?.takePicture()
                         when (result) {
                             is ImageCaptureResult.Success -> {
-                                println("D001 Picture size: ${result.byteArray.size}")
+                                onPictureTaken(result.byteArray)
                             }
 
                             is ImageCaptureResult.Error -> {
-                                println("D001 Error taking picture: ${result.exception}")
                             }
 
                             null -> {
-                                println("D001 Camera controller not ready")
                             }
                         }
                     }
@@ -103,9 +205,39 @@ fun ScanScreen(navController: NavController, onClose: () -> Unit) {
             FlashButton(
                 flashMode = flashMode.value,
             ) { newMode ->
-                println("D001 Flash toggled: $newMode")
                 flashMode.value = newMode
                 cameraController.value?.setFlashMode(newMode)
+            }
+        }
+    }
+}
+
+@Composable
+fun CapturedImagePreview(bytes: ByteArray, onUsePhoto: () -> Unit, onRetake: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize().background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        val imageBitmap = remember(bytes) { bytes.decodeToImageBitmap() }
+
+        Image(
+            bitmap = imageBitmap,
+            contentDescription = "Captured image",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit
+        )
+
+        Row(
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                .padding(bottom = 48.dp, start = 8.dp, end = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            TextButton(onClick = onRetake) {
+                Text("Retake", color = Color.White)
+            }
+
+            TextButton(onClick = onUsePhoto) {
+                Text("Use Photo", color = Color.White)
             }
         }
     }
@@ -181,9 +313,7 @@ private fun CircularIconButton(
     size: Dp = 44.dp
 ) {
     Surface(
-        modifier = modifier.size(size),
-        shape = CircleShape,
-        color = backgroundColor
+        modifier = modifier.size(size), shape = CircleShape, color = backgroundColor
     ) {
         IconButton(
             onClick = onClick, modifier = Modifier.size(size)
@@ -198,9 +328,7 @@ private fun CaptureButton(
     onClick: () -> Unit, modifier: Modifier = Modifier, buttonSize: Dp = 72.dp, iconSize: Dp = 56.dp
 ) {
     Surface(
-        modifier = modifier.size(buttonSize),
-        shape = CircleShape,
-        color = Color.Transparent
+        modifier = modifier.size(buttonSize), shape = CircleShape, color = Color.Transparent
     ) {
         IconButton(
             onClick = onClick, modifier = Modifier.size(buttonSize)

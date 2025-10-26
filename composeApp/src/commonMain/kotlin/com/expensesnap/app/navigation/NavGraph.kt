@@ -24,7 +24,7 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable<Screen.Scan> {
-            ScanScreen(navController = navController, onClose = { navController.navigateUp() })
+            ScanScreen(onClose = { navController.navigateUp() })
         }
 
         composable<Screen.Export> {

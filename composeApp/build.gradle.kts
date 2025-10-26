@@ -17,7 +17,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosArm64(),
         iosSimulatorArm64()
@@ -31,7 +31,7 @@ kotlin {
     room {
         schemaDirectory("$projectDir/schemas")
     }
-    
+
     sourceSets {
         androidMain.dependencies {
             implementation(compose.preview)
@@ -60,6 +60,11 @@ kotlin {
             // Navigation
             implementation(libs.compose.navigation)
 
+            // Permissions
+            api(libs.moko.permissions)
+            api(libs.moko.permissions.compose)
+            implementation(libs.moko.permissions.camera)
+
             // Koin for Dependency Injection
             api(libs.koin.core)
             implementation(libs.koin.compose)
@@ -68,11 +73,16 @@ kotlin {
             // Ktor Client Core
             implementation(libs.bundles.ktor)
 
+            // DataStore
+            api(libs.androidx.datastore.preferences)
+            api(libs.androidx.datastore)
+
             // Room
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
 
-            implementation("io.github.kashif-mehmood-km:camerak:0.0.12")
+            // CameraK
+            implementation(libs.camerak)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
