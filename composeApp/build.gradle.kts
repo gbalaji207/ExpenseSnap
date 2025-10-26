@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.room)
 }
 
 kotlin {
@@ -26,10 +25,6 @@ kotlin {
             baseName = "ComposeApp"
             isStatic = true
         }
-    }
-
-    room {
-        schemaDirectory("$projectDir/schemas")
     }
 
     sourceSets {
@@ -77,10 +72,6 @@ kotlin {
             api(libs.androidx.datastore.preferences)
             api(libs.androidx.datastore)
 
-            // Room
-            implementation(libs.androidx.room.runtime)
-            implementation(libs.sqlite.bundled)
-
             // CameraK
             implementation(libs.camerak)
         }
@@ -123,6 +114,5 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
-    ksp(libs.androidx.room.compiler)
 }
 
