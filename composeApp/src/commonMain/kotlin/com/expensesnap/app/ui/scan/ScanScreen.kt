@@ -4,8 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,7 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanScreen(onClose: () -> Unit) {
+fun ScanScreen(onReceiptSaved: (receiptId: String) -> Unit, onClose: () -> Unit) {
     val viewModel = koinViewModel<ScanViewModel>()
     val screenState by viewModel.scanScreenState.collectAsStateWithLifecycle()
     val showPermissionRationaleDialog by viewModel.showPermissionRationaleDialog.collectAsStateWithLifecycle()
@@ -98,27 +96,17 @@ fun ScanScreen(onClose: () -> Unit) {
 
         is ScanScreenState.ProcessingImagePreview -> {
             // Display loading state while processing the captured image
-            Box(
-                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Processing photo...", style = MaterialTheme.typography.bodyLarge)
-            }
+            ProcessingScreen(viewModel.photoBytes!!)
         }
 
         is ScanScreenState.ImageProcessed -> {
             // Show success state after image processing completes
-            Box(
-                modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Processed Successfully", style = MaterialTheme.typography.bodyLarge)
-            }
-        }
-
-        ScanScreenState.Close -> {
-            // Close the scan screen
-            onClose()
+            SuccessScreen(
+                onAnimationComplete = {
+                    val receiptId = (screenState as ScanScreenState.ImageProcessed).receiptId
+                    onReceiptSaved(receiptId)
+                }
+            )
         }
     }
 

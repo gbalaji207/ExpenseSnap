@@ -22,9 +22,6 @@ sealed class Screen {
 
     @Serializable
     data class Edit(val receiptId: String) : Screen()
-
-    @Serializable
-    data object Processing : Screen()
 }
 
 // Helper function to check if route should show bottom navigation

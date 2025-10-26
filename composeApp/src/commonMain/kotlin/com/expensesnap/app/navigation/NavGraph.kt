@@ -9,7 +9,6 @@ import com.expensesnap.app.ui.detail.EditReceiptScreen
 import com.expensesnap.app.ui.detail.ReceiptDetailScreen
 import com.expensesnap.app.ui.export.ExportScreen
 import com.expensesnap.app.ui.home.HomeScreen
-import com.expensesnap.app.ui.scan.ProcessingScreen
 import com.expensesnap.app.ui.scan.ScanScreen
 import com.expensesnap.app.ui.settings.SettingsScreen
 
@@ -24,7 +23,14 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable<Screen.Scan> {
-            ScanScreen(onClose = { navController.navigateUp() })
+            ScanScreen(
+                onReceiptSaved = { receiptId ->
+                    navController.navigate(Screen.Detail(receiptId = receiptId)) {
+                        popUpTo<Screen.Scan> { inclusive = true }
+                    }
+                },
+                onClose = { navController.navigateUp() },
+            )
         }
 
         composable<Screen.Export> {
@@ -48,10 +54,6 @@ fun NavGraph(navController: NavHostController) {
             EditReceiptScreen(
                 navController = navController, receiptId = edit.receiptId
             )
-        }
-
-        composable<Screen.Processing> {
-            ProcessingScreen(navController = navController)
         }
     }
 }

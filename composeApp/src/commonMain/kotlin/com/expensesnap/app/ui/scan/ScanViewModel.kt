@@ -167,10 +167,8 @@ class ScanViewModel(
     fun processCapturedPhoto() {
         _scanScreenState.update { ScanScreenState.ProcessingImagePreview }
         viewModelScope.launch {
-            delay(2000) // Simulate processing delay
-            _scanScreenState.update { ScanScreenState.ImageProcessed }
-            delay(1000) // Briefly show processed state
-            _scanScreenState.update { ScanScreenState.Close }
+            delay(5000) // Simulate processing delay
+            _scanScreenState.update { ScanScreenState.ImageProcessed("xyz-123456") }
         }
     }
 
@@ -211,8 +209,5 @@ sealed class ScanScreenState {
     data object ProcessingImagePreview : ScanScreenState()
 
     /** Briefly showing success state after processing completes */
-    data object ImageProcessed : ScanScreenState()
-
-    /** Signal to close the scan screen and return to previous screen */
-    data object Close : ScanScreenState()
+    data class ImageProcessed(val receiptId: String) : ScanScreenState()
 }
